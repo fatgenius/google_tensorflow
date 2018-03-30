@@ -42,3 +42,44 @@ linear_regressor = tf.estimator.LinearRegressor(
     feature_columns=feature_columns,
     optimizer=my_optimizer
 )
+
+#input function
+
+def my_input_fn(features, targets, batch_size=1, shuffle=True, num_epochs=None):
+    """Trains a linear regression model of one feature.
+
+    Args:
+      features: pandas DataFrame of features
+      targets: pandas DataFrame of targets
+      batch_size: Size of batches to be passed to the model
+      shuffle: True or False. Whether to shuffle the data.
+      num_epochs: Number of epochs for which data should be repeated. None = repeat indefinitely
+    Returns:
+      Tuple of (features, labels) for next data batch
+    """
+
+    # Convert pandas data into a dict of np arrays.
+    features = {key:np.array(value) for key,value in dict(features).items()}
+
+    # Construct a dataset, and configure batching/repeating.
+    ds = Dataset.from_tensor_slices((features,targets)) # warning: 2GB limit
+    ds = ds.batch(batch_size).repeat(num_epochs)
+
+    # Shuffle the data, if specified.
+    if shuffle:
+      ds = ds.shuffle(buffer_size=10000)
+
+    # Return the next batch of data.
+    features, labels = ds.make_one_shot_iterator().get_next()
+    return features, labels
+
+
+
+min_house_value = california_housing_dataframe["median_house_value"].min()
+max_house_value = california_housing_dataframe["median_house_value"].max()
+min_max_difference = max_house_value - min_house_value
+
+print("Min. Median House Value: %0.3f" % min_house_value)
+print("Max. Median House Value: %0.3f" % max_house_value)
+print("Difference between Min. and Max.: %0.3f" % min_max_difference)
+print("Root Mean Squared Error: %0.3f" % root_mean_squared_erro)
